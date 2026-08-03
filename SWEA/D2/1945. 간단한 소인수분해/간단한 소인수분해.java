@@ -11,32 +11,22 @@ public class Solution {
 
 		for (int testCase = 1; testCase <= T; testCase++) {
 
+			sb.append("#").append(testCase).append(" ");
+
 			int N = Integer.parseInt(br.readLine());
-			int count2 = 0, count3 = 0, count5 = 0, count7 = 0, count11 = 0;
+			int[] primeFactors = { 2, 3, 5, 7, 11 };
+			int[] counts = new int[primeFactors.length];
 
-			while (N > 1) {
-				if (N % 2 == 0) {
-					N = N / 2;
-					count2++;
-				} else if (N % 3 == 0) {
-					N = N / 3;
-					count3++;
-				} else if (N % 5 == 0) {
-					N = N / 5;
-					count5++;
-				} else if (N % 7 == 0) {
-					N = N / 7;
-					count7++;
-				} else if (N % 11 == 0) {
-					N = N / 11;
-					count11++;
+			for (int i = 0; i < primeFactors.length; i++) {
+				while (N%primeFactors[i]==0) {
+					counts[i]++;
+					N /= primeFactors[i];
 				}
+				sb.append(counts[i]).append(" ");
 			}
-
-			sb.append("#").append(testCase).append(" ").append(count2).append(" ").append(count3).append(" ")
-					.append(count5).append(" ").append(count7).append(" ").append(count11).append("\n");
+			sb.append("\n");
 		}
-		System.out.println(sb); 
+		System.out.println(sb);
 
 	}
 }
