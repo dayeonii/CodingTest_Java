@@ -35,19 +35,16 @@ public class Solution {
 
 	private static String[] shuffleCard(String[] arr) {
 		int len = arr.length;
-		int halfIdx = (len % 2 == 0) ? len / 2 : len / 2 + 1;
+		int halfIdx = (len + 1) / 2;
 
 		String[] result = new String[len];
-		String[] firstArr = Arrays.copyOfRange(arr, 0, halfIdx);
-		String[] secondArr = Arrays.copyOfRange(arr, halfIdx, len);
 
-		int j = 0;
-		for (int i = 0; i < len; i += 2) {
-			result[i] = firstArr[j];
-			if (j < secondArr.length) {
-				result[i + 1] = secondArr[j];
+		int idx = 0;
+		for (int i = 0; i < halfIdx; i++) {
+			result[idx++] = arr[i];
+			if (i + halfIdx < len) {
+				result[idx++] = arr[i + halfIdx];
 			}
-			j++;
 		}
 
 		return result;
