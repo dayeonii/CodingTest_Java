@@ -1,0 +1,57 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
+
+public class Solution {
+	public static void main(String[] args) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		StringBuilder sb = new StringBuilder();
+
+		int T = Integer.parseInt(br.readLine());
+		for (int tc = 1; tc <= T; tc++) {
+			int N = Integer.parseInt(br.readLine());
+			int M = Integer.parseInt(br.readLine());
+
+			// 학생 번호 1번부터 시작
+			boolean students[][] = new boolean[N+1][N+1];
+			for (int i = 0; i < M; i++) {
+				StringTokenizer st = new StringTokenizer(br.readLine());
+				int a = Integer.parseInt(st.nextToken());
+				int b = Integer.parseInt(st.nextToken());
+				students[a][b] = true; // a->b
+			}
+
+			// floyd warshall
+			// 경유해서 도달 가능한 부분들을 찾아서 처리해준다
+			for (int k = 1; k <= N; k++) {
+				for (int i = 1; i <= N; i++) {
+					for (int j = 1; j <= N; j++) {
+						if (students[i][k] && students[k][j]) {
+							students[i][j] = true; // a->k->b 경유해서 갈 수 있다
+						}
+					}
+				}
+			}
+
+			int result = 0;
+			for (int i = 1; i <= N; i++) {
+				int known = 0;
+				for (int j = 1; j <= N; j++) {
+					if (i == j) {
+						continue;
+					}
+					if (students[i][j] || students[j][i]) { // 각 노드는 본인의 키를 알려면 모든 다른 노드에 대해서 a->b 또는 b->a가 있으면 된다
+						known++;
+					}
+				}
+
+				if (known == N - 1) {
+					result++;
+				}
+			}
+			sb.append('#').append(tc).append(' ').append(result).append('\n');
+		}
+		System.out.print(sb);
+	}
+}
