@@ -1,0 +1,120 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+
+public class Solution {
+
+	static int N;
+	static int maxCores;
+	static int minLen;
+	static int map[][];
+	static List<Core> cores;
+
+	static int delta[][] = { { 0, -1 }, { 0, 1 }, { -1, 0 }, { 1, 0 } };
+
+	static class Core {
+		int x;
+		int y;
+
+		Core(int x, int y) {
+			this.x = x;
+			this.y = y;
+		}
+	}
+
+	public static void main(String[] args) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		StringBuilder sb = new StringBuilder();
+
+		int T = Integer.parseInt(br.readLine());
+		for (int tc = 1; tc <= T; tc++) {
+			N = Integer.parseInt(br.readLine());
+			map = new int[N][N];
+			cores = new ArrayList<>();
+
+			for (int i = 0; i < N; i++) {
+				StringTokenizer st = new StringTokenizer(br.readLine());
+				for (int j = 0; j < N; j++) {
+					map[i][j] = Integer.parseInt(st.nextToken());
+					if (map[i][j] == 1) {
+						if (i > 0 && i < N - 1 && j > 0 && j < N - 1) {
+							cores.add(new Core(i, j));
+						}
+					}
+				}
+			}
+
+			maxCores = 0;
+			minLen = Integer.MAX_VALUE;
+
+			dfs(0, 0, 0);
+
+			sb.append('#').append(tc).append(' ').append(minLen).append('\n');
+		}
+		System.out.print(sb);
+	}
+
+	private static void dfs(int index, int connectedCount, int length) {
+		// 가지치기
+		if (connectedCount + (cores.size() - index) < maxCores) {
+			return;
+		}
+
+		// 종료 조건
+		if (index == cores.size()) {
+			if (connectedCount > maxCores) {
+				maxCores = connectedCount;
+				minLen = length;
+			} else if (connectedCount == maxCores) {
+				minLen = Math.min(minLen, length);
+			}
+			return;
+		}
+
+		// 탐색
+		Core current = cores.get(index);
+		for (int i = 0; i < 4; i++) {
+			if (canGo(current.x, current.y, i)) {
+				int len = setWire(current.x, current.y, i, 2);
+				dfs(index + 1, connectedCount + 1, length + len);
+				setWire(current.x, current.y, i, 0);
+
+			}
+		}
+
+		// 전선을 깔지 못하는 코어인 경우
+		dfs(index + 1, connectedCount, length);
+	}
+
+	private static int setWire(int x, int y, int dir, int type) {
+		int nr = x + delta[dir][0];
+		int nc = y + delta[dir][1];
+		int len = 0;
+
+		while (nr >= 0 && nr < N && nc >= 0 && nc < N) {
+			map[nr][nc] = type;
+			len++;
+			nr += delta[dir][0];
+			nc += delta[dir][1];
+		}
+		return len;
+	}
+
+	private static boolean canGo(int x, int y, int dir) {
+		int nr = x + delta[dir][0];
+		int nc = y + delta[dir][1];
+
+		while (nr >= 0 && nr < N && nc >= 0 && nc < N) {
+			if (map[nr][nc] != 0) {
+				return false;
+			}
+			nr += delta[dir][0];
+			nc += delta[dir][1];
+		}
+		return true;
+	}
+
+}
