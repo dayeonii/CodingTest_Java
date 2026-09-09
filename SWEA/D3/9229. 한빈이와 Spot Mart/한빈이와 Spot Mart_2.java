@@ -7,6 +7,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.StringTokenizer;
 
+/*
+* [D3] Title: 한빈이와 Spot Mart, Time: 102 ms, Memory: 30,720 KB -BaekjoonHub
+*/
+
 public class Solution {
 
 	public static void main(String[] args) throws IOException {
