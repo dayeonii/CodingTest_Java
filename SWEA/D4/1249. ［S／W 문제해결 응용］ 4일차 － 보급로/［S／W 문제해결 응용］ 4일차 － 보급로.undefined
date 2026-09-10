@@ -1,0 +1,105 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.PriorityQueue;
+
+public class Solution {
+	static int N;
+	static int map[][];
+	static int dist[][];
+
+	static int delta[][] = {{-1,0}, {1,0}, {0,-1}, {0,1}};
+
+	static class Node implements Comparable<Node> {
+		int x;
+		int y;
+		int cost;
+
+		public Node(int x, int y, int cost) {
+			this.x = x;
+			this.y = y;
+			this.cost = cost;
+		}
+
+		public int compareTo(Node o) {
+			return Integer.compare(this.cost, o.cost);
+		}
+	}
+
+	public static void main(String[] args) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		StringBuilder sb = new StringBuilder();
+
+		int T = Integer.parseInt(br.readLine());
+		for (int tc = 1; tc <= T; tc++) {
+
+			N = Integer.parseInt(br.readLine());
+			map = new int[N][N];
+			dist = new int[N][N];
+			for (int i = 0; i < N; i++) {
+				String line = br.readLine();
+				for (int j = 0; j < N; j++) {
+					map[i][j] = line.charAt(j)-'0';
+				}
+			}
+			
+			dijkstra();
+
+			sb.append('#').append(tc).append(' ').append(dist[N-1][N-1]).append('\n');
+		}
+		System.out.print(sb);
+	}
+
+	private static void dijkstra() {
+		PriorityQueue<Node> queue = new PriorityQueue<>();
+
+		// 거리 배열 초기화
+		for (int i = 0; i < N; i++) {
+			for (int j = 0; j < N; j++) {
+				dist[i][j] = Integer.MAX_VALUE;
+			}
+		}
+
+		// 0,0은 거리를 알고 있음
+		dist[0][0] = 0;
+
+		// 0,0을 큐에 넣음
+		queue.offer(new Node(0, 0, 0));
+
+		// 큐가 빌 때까지 반복
+		while (!queue.isEmpty()) {
+			// 큐에서 하나 꺼낸다 (cost가 작은 것 우선순위)
+			Node current = queue.poll();
+
+			// 이미 더 짧은 경로 방문한 적 있다면(dist에 저장된거) 스킵
+			if (current.cost > dist[current.x][current.y]) {
+				continue;
+			}
+
+			// 도착했으면 종료
+			if ((current.x == N - 1) && (current.y == N - 1)) {
+				return;
+			}
+
+			// 4방 탐색
+			for (int i = 0; i < 4; i++) {
+				// 다음 노드
+				int nr = current.x + delta[i][0];
+				int nc = current.y + delta[i][1];
+
+				if (nr < 0 || nr >= N || nc < 0 || nc >= N) {
+					continue;
+				}
+
+				int nextCost = dist[current.x][current.y] + map[nr][nc];
+
+				if (nextCost < dist[nr][nc]) {
+					dist[nr][nc] = nextCost;
+					
+					queue.offer(new Node(nr, nc, nextCost));
+				}
+			}
+		}
+	}
+
+}
