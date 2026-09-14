@@ -2,35 +2,37 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
 public class Solution {
 
 	static int N;
-	static int maxCores;
+	static int maxConnected;
 	static int minLen;
-	static int map[][];
 	static List<Core> cores;
-
-	static int delta[][] = { { 0, -1 }, { 0, 1 }, { -1, 0 }, { 1, 0 } };
+	static int map[][];
+	
+	static int[][] delta = { {-1,0}, {1,0}, {0,-1}, {0,1} };
 
 	static class Core {
-		int x;
-		int y;
+		int r;
+		int c;
 
-		Core(int x, int y) {
-			this.x = x;
-			this.y = y;
+		Core(int r, int c) {
+			this.r = r;
+			this.c = c;
 		}
 	}
 
 	public static void main(String[] args) throws IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 
 		int T = Integer.parseInt(br.readLine());
 		for (int tc = 1; tc <= T; tc++) {
+			// 맵 정보 받기
 			N = Integer.parseInt(br.readLine());
 			map = new int[N][N];
 			cores = new ArrayList<>();
@@ -39,82 +41,81 @@ public class Solution {
 				StringTokenizer st = new StringTokenizer(br.readLine());
 				for (int j = 0; j < N; j++) {
 					map[i][j] = Integer.parseInt(st.nextToken());
-					if (map[i][j] == 1) {
-						if (i > 0 && i < N - 1 && j > 0 && j < N - 1) {
+
+					if (i > 0 && i < N - 1 && j > 0 && j < N - 1) {
+						if (map[i][j] == 1) {
 							cores.add(new Core(i, j));
 						}
 					}
 				}
 			}
 
-			maxCores = 0;
+			// dfs
+			maxConnected = 0;
 			minLen = Integer.MAX_VALUE;
-
 			dfs(0, 0, 0);
 
+			// 결과 출력
 			sb.append('#').append(tc).append(' ').append(minLen).append('\n');
 		}
 		System.out.print(sb);
 	}
 
-	private static void dfs(int index, int connectedCount, int length) {
-		// 가지치기
-		if (connectedCount + (cores.size() - index) < maxCores) {
-			return;
-		}
-
+	private static void dfs(int idx, int connected, int length) {
 		// 종료 조건
-		if (index == cores.size()) {
-			if (connectedCount > maxCores) {
-				maxCores = connectedCount;
+		if (idx == cores.size()) {
+			// 갱신해주고
+			if (connected > maxConnected) {
+				maxConnected = connected;
 				minLen = length;
-			} else if (connectedCount == maxCores) {
+			} else if (connected==maxConnected){
 				minLen = Math.min(minLen, length);
 			}
+			// 종료
 			return;
 		}
 
-		// 탐색
-		Core current = cores.get(index);
-		for (int i = 0; i < 4; i++) {
-			if (canGo(current.x, current.y, i)) {
-				int len = setWire(current.x, current.y, i, 2);
-				dfs(index + 1, connectedCount + 1, length + len);
-				setWire(current.x, current.y, i, 0);
-
+		// 다음 선택 후보군에 대한 루프
+		Core current = cores.get(idx);
+		for(int i=0; i<4; i++) {
+			if(canGo(current.r, current.c, i)) {
+				int len = setWire(current.r, current.c, i, 2);		
+				dfs(idx+1, connected+1, length+len);
+				setWire(current.r, current.c, i, 0);
 			}
 		}
-
-		// 전선을 깔지 못하는 코어인 경우
-		dfs(index + 1, connectedCount, length);
+		
+		// 연결하지 않는 경우
+		dfs(idx+1, connected, length);
 	}
 
-	private static int setWire(int x, int y, int dir, int type) {
-		int nr = x + delta[dir][0];
-		int nc = y + delta[dir][1];
-		int len = 0;
-
-		while (nr >= 0 && nr < N && nc >= 0 && nc < N) {
-			map[nr][nc] = type;
-			len++;
-			nr += delta[dir][0];
-			nc += delta[dir][1];
-		}
-		return len;
-	}
-
-	private static boolean canGo(int x, int y, int dir) {
-		int nr = x + delta[dir][0];
-		int nc = y + delta[dir][1];
-
-		while (nr >= 0 && nr < N && nc >= 0 && nc < N) {
-			if (map[nr][nc] != 0) {
+	private static boolean canGo(int r, int c, int dir) {
+		int nr = r + delta[dir][0];
+		int nc = c + delta[dir][1];
+		
+		while(nr>=0 && nr<N && nc>=0 && nc<N) {
+			if(map[nr][nc]!=0) {
 				return false;
 			}
-			nr += delta[dir][0];
-			nc += delta[dir][1];
+			nr+=delta[dir][0];
+			nc+=delta[dir][1];
 		}
 		return true;
+	}
+
+	private static int setWire(int r, int c, int dir, int type) {
+		int nr = r + delta[dir][0];
+		int nc = c + delta[dir][1];
+		int len = 0;
+		
+		while(nr>=0 && nr<N && nc>=0 && nc<N) {
+			map[nr][nc] = type;
+			len++;
+			
+			nr+=delta[dir][0];
+			nc+=delta[dir][1];
+		}
+		return len;
 	}
 
 }
