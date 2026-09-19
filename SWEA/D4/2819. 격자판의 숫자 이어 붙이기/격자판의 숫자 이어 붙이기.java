@@ -9,7 +9,6 @@ public class Solution {
 
 	final static int SIZE = 4;
 	static Set<Integer> result;
-	static int currentX, currentY;
 	static int[][] map;
 	static int[][] delta = { { 0, -1 }, { 0, 1 }, { -1, 0 }, { 1, 0 } };
 
