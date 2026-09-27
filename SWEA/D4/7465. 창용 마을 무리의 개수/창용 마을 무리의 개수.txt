@@ -1,0 +1,70 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
+
+public class Solution {
+
+	static int N, M;
+	static int result;
+	static int[] parent;
+
+	public static void main(String[] args) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		StringBuilder sb = new StringBuilder();
+
+		int T = Integer.parseInt(br.readLine());
+		for (int tc = 1; tc <= T; tc++) {
+			StringTokenizer st = new StringTokenizer(br.readLine());
+			N = Integer.parseInt(st.nextToken());
+			M = Integer.parseInt(st.nextToken());
+
+			parent = new int[N + 1]; // 1-based
+			for (int i = 1; i <= N; i++) {
+				parent[i] = i;
+			}
+
+			for (int i = 0; i < M; i++) {
+				st = new StringTokenizer(br.readLine());
+				int a = Integer.parseInt(st.nextToken());
+				int b = Integer.parseInt(st.nextToken());
+
+				if (find(a) == find(b)) {
+
+				} else {
+					union(a, b);
+				}
+
+			}
+
+			result = 0;
+			for (int i = 0; i < parent.length; i++) {
+				if (parent[i] == i) {
+					result++;
+				}
+			}
+
+			// 1-based 이므로 parent[0] 을 제외 : result-1
+			sb.append('#').append(tc).append(' ').append(result-1).append('\n');
+		}
+		System.out.print(sb);
+	}
+
+	private static void union(int a, int b) {
+		int rootA = find(a);
+		int rootB = find(b);
+
+		if (rootA != rootB) {
+			parent[rootB] = rootA;
+		}
+
+	}
+
+	private static int find(int a) {
+		if (parent[a] == a) {
+			return a;
+		}
+		return parent[a] = find(parent[a]);
+	}
+
+}
