@@ -1,26 +1,27 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.StringTokenizer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 public class Solution {
 
 	static int N;
-	static int minLen;
-	static boolean isSelected[];
-	static Point customers[];
-	static Point start, end;
+	static int result;
+	static List<Point> customers;
+	static boolean[] visited;
 
 	static class Point {
-		int x;
-		int y;
+		int x, y;
 
 		Point(int x, int y) {
 			this.x = x;
 			this.y = y;
 		}
 	}
+	
+	static Point company, home;
 
 	public static void main(String[] args) throws IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -29,54 +30,64 @@ public class Solution {
 		int T = Integer.parseInt(br.readLine());
 		for (int tc = 1; tc <= T; tc++) {
 			N = Integer.parseInt(br.readLine());
+			customers = new ArrayList<>();
+			visited = new boolean[N];
 
 			StringTokenizer st = new StringTokenizer(br.readLine());
-			
-			start = new Point(Integer.parseInt(st.nextToken()), Integer.parseInt(st.nextToken()));
-			end = new Point(Integer.parseInt(st.nextToken()), Integer.parseInt(st.nextToken()));
-			
-			customers = new Point[N];
+
+			// company
+			int x = Integer.parseInt(st.nextToken());
+			int y = Integer.parseInt(st.nextToken());
+			company = new Point(x, y);
+
+			// home
+			x = Integer.parseInt(st.nextToken());
+			y = Integer.parseInt(st.nextToken());
+			home = new Point(x, y);
+
+			// customers
 			for (int i = 0; i < N; i++) {
-				int x = Integer.parseInt(st.nextToken());
-				int y = Integer.parseInt(st.nextToken());
-				customers[i] = new Point(x, y);
+				x = Integer.parseInt(st.nextToken());
+				y = Integer.parseInt(st.nextToken());
+				customers.add(new Point(x, y));
 			}
 
-			minLen = Integer.MAX_VALUE;
-			isSelected = new boolean[N];
-			perm(0,0,start);
-			
-			sb.append('#').append(tc).append(' ').append(minLen).append('\n');
+			// solve
+			result = Integer.MAX_VALUE;
+			dfs(0, 0, company);
+
+			// output
+			sb.append('#').append(tc).append(' ').append(result).append('\n');
 		}
 		System.out.print(sb);
 	}
 
-	private static void perm(int count, int curLen, Point curLoc) {
-		// 가지치기
-		if(curLen>=minLen) {
+	private static void dfs(int count, int length, Point current) {
+
+		if (length > result) {
 			return;
 		}
 		
-		// 종료조건
-		if(count==N) {
-			curLen += getLength(curLoc.x, curLoc.y, end.x, end.y);
-			minLen = Math.min(curLen, minLen);
+		if (count == N) {
+			length += getLength(current.x, current.y, home.x, home.y);	// last customer -> home
+			result = Math.min(result, length);
 			return;
 		}
-		
-		// 순열 생성
-		for(int i=0; i<N; i++) {
-			if(isSelected[i]==false) {
-				isSelected[i] = true;
-				int len = getLength(curLoc.x, curLoc.y, customers[i].x, customers[i].y);
-				perm(count+1, curLen+len, new Point(customers[i].x, customers[i].y));
-				isSelected[i] = false;
+
+		for (int i = 0; i < N; i++) {
+			if (!visited[i]) {
+				visited[i] = true;
+				Point next = customers.get(i);
+				int len = getLength(current.x, current.y, next.x, next.y);
+				dfs(count+1, length+len, next);
+				visited[i] = false;
 			}
 		}
+
 	}
 
 	private static int getLength(int x1, int y1, int x2, int y2) {
-		return Math.abs(x1-x2) + Math.abs(y1-y2);
+		return Math.abs(x1 - x2) + Math.abs(y1 - y2);
 	}
 
 }
