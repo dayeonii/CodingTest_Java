@@ -6,14 +6,10 @@ import java.util.StringTokenizer;
 public class Solution {
 
 	static int H, W, N;
-	static int curX, curY;
-	static String play;
-
-	static int currentDir;
-	static char[] tank = { '^', 'v', '<', '>' };
-
+	static int currentDir, currentR, currentC;
 	static char[][] map;
-	static int[][] delta = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
+	static int[][] delta = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } }; // U D L R
+	static String shapeCar = "^v<>";
 
 	public static void main(String[] args) throws IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -25,38 +21,37 @@ public class Solution {
 			H = Integer.parseInt(st.nextToken());
 			W = Integer.parseInt(st.nextToken());
 
+			// init map & set start location
 			map = new char[H][W];
-
 			for (int i = 0; i < H; i++) {
 				String line = br.readLine();
 				for (int j = 0; j < W; j++) {
 					map[i][j] = line.charAt(j);
-					if (map[i][j] == '^') {
-						currentDir = 0;
-						curX = i;
-						curY = j;
-					} else if (map[i][j] == 'v') {
-						currentDir = 1;
-						curX = i;
-						curY = j;
-					} else if (map[i][j] == '<') {
-						currentDir = 2;
-						curX = i;
-						curY = j;
-					} else if (map[i][j] == '>') {
-						currentDir = 3;
-						curX = i;
-						curY = j;
+
+					int dir = shapeCar.indexOf(map[i][j]);
+					if (dir != -1) {
+						currentR = i;
+						currentC = j;
+						currentDir = shapeCar.indexOf(map[i][j]);
 					}
 				}
 			}
 
+			// input commands & play
 			N = Integer.parseInt(br.readLine());
+			String commands = br.readLine();
+			for (int i = 0; i < N; i++) {
+				char command = commands.charAt(i);
 
-			play = br.readLine();
+				if (command == 'S') {
+					shoot(currentDir, currentR, currentC);
+				} else {
+					move(command);
+				}
 
-			playGame();
+			}
 
+			// output
 			sb.append('#').append(tc).append(' ');
 			for (int i = 0; i < H; i++) {
 				for (int j = 0; j < W; j++) {
@@ -68,59 +63,41 @@ public class Solution {
 		System.out.print(sb);
 	}
 
-	private static void playGame() {
+	private static void move(char command) {
+		String moveCommand = "UDLR";
+		int dir = moveCommand.indexOf(command);
 
-		for (int index = 0; index < play.length(); index++) {
-
-			// Move
-			switch (play.charAt(index)) {
-			case 'U':
-				moving(0);
-				break;
-			case 'D':
-				moving(1);
-				break;
-			case 'L':
-				moving(2);
-				break;
-			case 'R':
-				moving(3);
-				break;
-			case 'S':
-				shooting();
-				break;
-			}
-		}
-
-	}
-
-	private static void moving(int dir) {
-		int nx = curX + delta[dir][0];
-		int ny = curY + delta[dir][1];
-
-		if (nx >= 0 && nx < H && ny >= 0 && ny < W && map[nx][ny] == '.') {
-			map[curX][curY] = '.';
-			curX = nx;
-			curY = ny;
-		}
 		currentDir = dir;
-		map[curX][curY] = tank[currentDir];
+
+		int nr = currentR + delta[dir][0];
+		int nc = currentC + delta[dir][1];
+
+		if (nr >= 0 && nr < H && nc >= 0 && nc < W && map[nr][nc] == '.') {
+			map[currentR][currentC] = '.';
+			currentR = nr;
+			currentC = nc;
+		}
+
+		map[currentR][currentC] = shapeCar.charAt(dir);
 	}
 
-	private static void shooting() {
-		int nx = curX + delta[currentDir][0];
-		int ny = curY + delta[currentDir][1];
+	private static void shoot(int dir, int r, int c) {
+		int nr = r + delta[dir][0];
+		int nc = c + delta[dir][1];
 
-		while (nx >= 0 && nx < H && ny >= 0 && ny < W) {
-			if (map[nx][ny] == '*') {
-				map[nx][ny] = '.';
-				return;
-			} else if (map[nx][ny] == '#') {
-				return;
-			} else {
-				nx += delta[currentDir][0];
-				ny += delta[currentDir][1];
+		while (nr >= 0 && nr < H && nc >= 0 && nc < W) {
+			if (map[nr][nc] == '*') {
+				// break wall and stop
+				map[nr][nc] = '.';
+				break;
+			} else if (map[nr][nc] == '#') {
+				// stop
+				break;
 			}
+
+			// if ground or water -> pass
+			nr += delta[dir][0];
+			nc += delta[dir][1];
 		}
 	}
 
