@@ -37,6 +37,8 @@ public class Solution {
 
 		int T = Integer.parseInt(br.readLine());
 		for (int tc = 1; tc <= T; tc++) {
+			sb.append('#').append(tc).append(' ');
+			
 			StringTokenizer st = new StringTokenizer(br.readLine());
 			N = Integer.parseInt(st.nextToken());
 			M = Integer.parseInt(st.nextToken());
@@ -57,6 +59,8 @@ public class Solution {
 
 			if (count % 4 != 0) {
 				result = "NO";
+				sb.append(result).append('\n');
+				continue;
 			}
 
 			for (int i = 0; i < N; i++) {
@@ -71,15 +75,17 @@ public class Solution {
 			}
 			
 
+			checking:
 			for (int i = 0; i < N; i++) {
 				for (int j = 0; j < M; j++) {
 					if (map[i][j] == '#') {
 						result = "NO";
+						break checking;
 					}
 				}
 			}
 
-			sb.append('#').append(tc).append(' ').append(result).append('\n');
+			sb.append(result).append('\n');
 		}
 		System.out.print(sb);
 	}
