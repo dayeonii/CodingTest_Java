@@ -1,0 +1,171 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+
+/*
+ * [문제]
+ * - N*N 크기의 맵
+ * 		- N : 3~8
+ * 		- 각 칸에는 지형의 높이가 적혀있음 (1~20)
+ * 		- 가장 높은 봉우리는 최대 5개
+ * - 최대한 긴 등산로 만들기
+ * 		- 가장 높은 봉우리 시작점
+ * 		- 높은 지형에서 낮은 지형으로 이동 가능
+ * 		- 가로 또는 세로 방향으로 이동 가능
+ * - 딱 한 곳을 정해서 최대 K 깊이만큼 깎을 수 있다
+ * - 만들 수 있는 가장 긴 등산로의 길이를 출력하기
+ * 
+ * [풀이]
+ * - 시작점 찾기 : 맵을 탐색해서 max값을 기록하기
+ * 		- 각각의 시작점에서 돌아보기
+ * - 하나의 시작점에서 갈 수 있는 최대한 긴 등산로를 찾기
+ * 		- dfs 사용
+ * 			- 가지 치기 : 
+ * 			- 종료 조건 : 
+ * 			- 재귀
+ * 				- 4방 탐색해서 현재 나보다 낮은 지형에 대해 재귀
+ *				- 4방 탐색해서 현재 나보다 높은 지형 뿐이면? -> 높은 지형이면 한 번 깎아볼 수 있음
+ * - 한 번 깎을 수 있는 찬스는 언제 써야할까?
+ * 		- 한 번에 K 만큼 팔 수 있음. K=1이면 1칸 팔 수 있음 (9->8)
+ * 		- map[nr][nc] > map[n][c] 라면 map[nr][nc]를 깎아서 재도전
+ * 				- 깎아도 소용 없는 케이스는 K보다 더 많이 깎아야 할 때 (map[nr][nc] - map[n][c] > K)
+ * */
+
+public class Solution {
+
+	static int N, K;
+	static int result;
+
+	static int[][] map;
+	static boolean[][] visited;
+	static int[][] delta = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
+
+	static class Point {
+		int r, c;
+
+		Point(int r, int c) {
+			this.r = r;
+			this.c = c;
+		}
+	}
+
+	public static void main(String[] args) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		StringBuilder sb = new StringBuilder();
+
+		int T = Integer.parseInt(br.readLine());
+		for (int tc = 1; tc <= T; tc++) {
+			StringTokenizer st = new StringTokenizer(br.readLine());
+
+			// read input
+			N = Integer.parseInt(st.nextToken());
+			K = Integer.parseInt(st.nextToken());
+
+			// init
+			visited = new boolean[N][N];
+			map = new int[N][N];
+			result = 0;
+			
+			// read input map and find max value
+			int topValue = 0;
+			for (int i = 0; i < N; i++) {
+				st = new StringTokenizer(br.readLine());
+				for (int j = 0; j < N; j++) {
+					map[i][j] = Integer.parseInt(st.nextToken());
+
+					if (map[i][j] > topValue) {
+						topValue = map[i][j];
+					}
+				}
+			}
+
+			// find start points
+			List<Point> startPoints = new ArrayList<>();
+			for (int i = 0; i < N; i++) {
+				for (int j = 0; j < N; j++) {
+					if (map[i][j] == topValue) {
+						startPoints.add(new Point(i, j));
+					}
+				}
+			}
+
+			// solve
+			for (int i = 0; i < startPoints.size(); i++) {
+				Point start = startPoints.get(i);
+				
+				visited = new boolean[N][N];
+				visited[start.r][start.c] = true;
+				
+				dfs(start, 1, true);
+			}
+
+			// print output
+			sb.append('#').append(tc).append(' ').append(result).append('\n');
+		}
+		System.out.print(sb);
+	}
+
+	private static void dfs(Point start, int length, boolean chance) {
+		
+		int r = start.r;
+		int c = start.c;
+		
+		// 가지 치기 - 명확하지 않음
+
+		// 종료 조건 - 명확하지 않음
+		
+		
+		// 종료 조건이 명확하지 않았기 때문에, result 갱신은 언제 해줘야 하지?
+		// 매번 호출될 때마다 확인해주자
+		result = Math.max(result, length);
+
+		// 재귀
+		for (int dir = 0; dir < 4; dir++) {
+			int nr = r + delta[dir][0];
+			int nc = c + delta[dir][1];
+
+			if(!canGo(nr,nc)) {
+				continue;
+			}
+			
+			if(visited[nr][nc]) {
+				continue;
+			}
+			
+			// 현재 위치보다 다음 칸이 낮을 때 - 일반적인 dfs 해보기
+			if(map[nr][nc] < map[r][c]) {
+				visited[nr][nc] = true;
+				
+				Point nextPoint = new Point(nr,nc);
+				dfs(nextPoint, length+1, chance);
+				
+				visited[nr][nc] = false;
+				
+			}
+			// 다음 위치가 높고 깎을 기회가 남아있는 경우
+			else if (chance) {
+				int temp = map[nr][nc];		// 원복을 위한 백업 값
+				
+				// 깎아도 소용있는가?
+				if(map[nr][nc] - map[r][c] < K) {
+					map[nr][nc] = map[r][c]-1;
+					
+					visited[nr][nc] = true;
+					
+					Point nextPoint = new Point(nr,nc);
+					dfs(nextPoint, length+1, false);
+					
+					visited[nr][nc] = false;
+					map[nr][nc] = temp;
+				}
+			}
+		}
+	}
+
+	private static boolean canGo(int nr, int nc) {
+		return nr >= 0 && nr < N && nc >= 0 && nc < N;
+	}
+}
