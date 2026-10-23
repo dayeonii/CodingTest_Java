@@ -15,12 +15,10 @@ public class Solution {
 
 	static class Point {
 		int r, c;
-		int length;
 
-		Point(int r, int c, int length) {
+		Point(int r, int c) {
 			this.r = r;
 			this.c = c;
-			this.length = length;
 		}
 	}
 
@@ -41,7 +39,7 @@ public class Solution {
 
 					if (map[i][j] == 1) {
 						if (i > 0 && i < N - 1 && j > 0 && j < N - 1) {
-							coreList.add(new Point(i, j, 0)); // 연결해야되는 코어들
+							coreList.add(new Point(i, j)); // 연결해야되는 코어들
 						}
 					}
 				}
@@ -63,7 +61,7 @@ public class Solution {
 	private static void dfs(int idx, int count, int length) {
 
 		// 가지치기 : 남은 코어를 다 연결해도 전역 최댓값보다 작을 때
-		if (maxCore > count + (coreList.size() - idx + 1)) {
+		if (maxCore > count + (coreList.size() - idx)) {
 			return;
 		}
 
