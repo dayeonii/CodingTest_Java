@@ -2,26 +2,25 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.StringTokenizer;
 
 public class Solution {
 
-	static int N;
-	static int minLen;
-	static int maxConnect;
-	static List<Point> cores;
-	static boolean[] visited;
+	static int N, maxCore, minLen;
 	static int[][] map;
+	static ArrayList<Point> coreList;
+	static boolean[] connected;
 
 	static int[][] delta = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
 
 	static class Point {
-		int x, y;
+		int r, c;
+		int length;
 
-		Point(int x, int y) {
-			this.x = x;
-			this.y = y;
+		Point(int r, int c, int length) {
+			this.r = r;
+			this.c = c;
+			this.length = length;
 		}
 	}
 
@@ -33,9 +32,8 @@ public class Solution {
 		for (int tc = 1; tc <= T; tc++) {
 			N = Integer.parseInt(br.readLine());
 			map = new int[N][N];
-			cores = new ArrayList<>();
+			coreList = new ArrayList<>();
 
-			// input map
 			for (int i = 0; i < N; i++) {
 				StringTokenizer st = new StringTokenizer(br.readLine());
 				for (int j = 0; j < N; j++) {
@@ -43,88 +41,104 @@ public class Solution {
 
 					if (map[i][j] == 1) {
 						if (i > 0 && i < N - 1 && j > 0 && j < N - 1) {
-							cores.add(new Point(i, j));
+							coreList.add(new Point(i, j, 0)); // 연결해야되는 코어들
 						}
 					}
 				}
 			}
 
-			minLen = Integer.MAX_VALUE;
-			maxConnect = Integer.MIN_VALUE;
-			visited = new boolean[cores.size()];
+			connected = new boolean[coreList.size()];
 
-			dfs(0, 0, 0);
+			maxCore = 0;
+			minLen = Integer.MAX_VALUE;
+
+			dfs(0,0,0);
 
 			sb.append('#').append(tc).append(' ').append(minLen).append('\n');
 		}
 		System.out.print(sb);
+
 	}
 
-	private static void dfs(int idx, int length, int connect) {
-		// pruning
-		if (connect + (cores.size()-idx) < maxConnect) {
+	private static void dfs(int idx, int count, int length) {
+
+		// 가지치기 : 남은 코어를 다 연결해도 전역 최댓값보다 작을 때
+		if (maxCore > count + (coreList.size() - idx + 1)) {
 			return;
 		}
 
-		// base case
-		if (idx == cores.size()) {
-			if (connect > maxConnect) {
-				maxConnect = connect;
+		// 종료조건 : 코어 개수 다 봤을 때
+		if (idx == coreList.size()) {
+			// 만약 지금 발견한 코어 연결 수가 더 많으면
+			if(count > maxCore) {
+				maxCore = count;
 				minLen = length;
-			} else {
-				minLen = Math.min(length, minLen);
+			}
+			// 더 많지는 않고 같으면 최소 길이로 갱신
+			else if (count==maxCore) {
+				minLen = Math.min(minLen, length);
 			}
 			return;
 		}
 
-		// recursive
-		Point current = cores.get(idx);
-		for(int dir=0; dir<4; dir++) {
-			if(canConnect(current, dir)) {
-				int len = setWire(current, dir, 2);
-				dfs(idx+1, length+len, connect+1);
-				setWire(current, dir, 0);
-			}
+		// 재귀
+		Point curCore = coreList.get(idx);
+		
+		// 지금 코어 연결해보기
+		for (int d = 0; d < 4; d++) {
+			// 지금 자리에서 현재 방향(d)으로 연결할 수 있는가?
+			int len = check(curCore, d);
+			
+			// 만약 연결할 수 없으면 (len==0) -> 막혔으니까 다음 방향으로
+			if(len==0) continue;
+			
+			// 연결할 수 있으면 -> 전선 깔고 재귀 호출
+			setWire(curCore, d, 2);
+			dfs(idx+1, count+1, length+len);
+			// 원상복구
+			setWire(curCore, d, 0);
 		}
 		
-		// not connect
-		dfs(idx+1, length, connect);
+		// 연결하지 않기
+		dfs(idx+1, count, length);
 	}
 
-	private static int setWire(Point current, int dir, int type) {
-		int nx = current.x + delta[dir][0];
-		int ny = current.y + delta[dir][1];
-
-		int length = 0;
-
-		while (isAvailable(nx, ny)) {
-			map[nx][ny] = type;
-			length++;
-
-			nx += delta[dir][0];
-			ny += delta[dir][1];
+	private static void setWire(Point curCore, int d, int type) {
+		int nr = curCore.r + delta[d][0];
+		int nc = curCore.c + delta[d][1];
+		
+		while(canGo(nr,nc)) {
+			map[nr][nc] = type;
+			nr += delta[d][0];
+			nc += delta[d][1];
 		}
-
-		return length;
 	}
 
-	private static boolean canConnect(Point current, int dir) {
-		int nx = current.x + delta[dir][0];
-		int ny = current.y + delta[dir][1];
-
-		while (isAvailable(nx, ny)) {
-			if (map[nx][ny] == 1 || map[nx][ny] == 2) {
-				return false;
+	private static int check(Point curCore, int d) {
+		int len = 0;
+		
+		int nr = curCore.r + delta[d][0];
+		int nc = curCore.c + delta[d][1];
+		
+		while(true) {
+			// 맵 밖에 도달하면 연결 가능함
+			if(!canGo(nr,nc)) {
+				return len;
 			}
-
-			nx += delta[dir][0];
-			ny += delta[dir][1];
+			
+			// 코어나 전선에 막히면 연결할 수 없다
+			if(map[nr][nc]!=0) {
+				return 0;
+			}
+			
+			len++;
+			
+			nr += delta[d][0];
+			nc += delta[d][1];
 		}
-		return true;
-
 	}
 
-	private static boolean isAvailable(int nx, int ny) {
-		return nx >= 0 && nx < N && ny >= 0 && ny < N;
+	private static boolean canGo(int nr, int nc) {
+		return nr >= 0 && nr < N && nc >= 0 && nc < N;
 	}
 }
